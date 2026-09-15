@@ -9,3 +9,4 @@ fastapi
 uvicorn
 ipykernel
 pytest
+PyJWT
