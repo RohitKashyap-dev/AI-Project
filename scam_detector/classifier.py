@@ -15,14 +15,35 @@ def classify_message(message: str, model_name: str | None = None) -> ScamDetecto
     fmt = output_parser.get_format_instructions()
     prompt = f"{SYSTEM_PROMPT}\n\nFormat instructions:\n{fmt}\n\nMessage:\n{message}\n"
 
-    try:
-        logger.info("Invoking LLM for classification")
-        raw = get_llm(model_name).invoke(prompt)
-        inner = extract_text_from_response(raw)
-        parsed = parse_model_output(output_parser, inner)
-        logger.info("Successfully parsed response: %s", parsed.is_scam)
-        return parsed
-    except Exception as exc:
-        logger.error("Failed to parse model output: %s", str(exc), exc_info=True)
-        print("Failed to parse model output:", exc)
-        return None
+    candidate_names = []
+    if model_name:
+        candidate_names.append(model_name)
+    candidate_names.extend([
+        "gemini-3.1-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.5-flash-lite",
+    ])
+
+    seen = set()
+    ordered_models = []
+    for name in candidate_names:
+        if name and name not in seen:
+            ordered_models.append(name)
+            seen.add(name)
+
+    last_error = None
+    for candidate in ordered_models:
+        try:
+            logger.info("Invoking LLM for classification with model: %s", candidate)
+            raw = get_llm(candidate).invoke(prompt)
+            inner = extract_text_from_response(raw)
+            parsed = parse_model_output(output_parser, inner)
+            logger.info("Successfully parsed response: %s", parsed.is_scam)
+            return parsed
+        except Exception as exc:
+            last_error = exc
+            logger.warning("Model %s failed; trying fallback model. Error: %s", candidate, exc)
+
+    logger.error("All model attempts failed: %s", last_error, exc_info=True)
+    print("Failed to parse model output:", last_error)
+    return None
