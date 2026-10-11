@@ -10,14 +10,11 @@ from backend.db.session import AsyncSessionLocal
 router = APIRouter(tags=["health"])
 
 
-def check_database_status() -> dict:
+async def check_database_status() -> dict:
     try:
-        async def _probe() -> dict:
-            async with AsyncSessionLocal() as session:
-                await session.execute(text("SELECT 1"))
-                return {"status": "ok", "details": "database reachable"}
-
-        return asyncio.run(_probe())
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+            return {"status": "ok", "details": "database reachable"}
     except Exception as exc:  # pragma: no cover - exercised in production runtime
         return {"status": "degraded", "details": str(exc)}
 
@@ -39,8 +36,8 @@ def check_redis_status() -> dict:
 
 
 @router.get("/health")
-def health_check():
-    database = check_database_status()
+async def health_check():
+    database = await check_database_status()
     redis_status = check_redis_status()
 
     overall_status = "ok" if database["status"] == "ok" and redis_status["status"] == "ok" else "degraded"
