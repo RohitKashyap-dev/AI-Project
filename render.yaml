@@ -8,11 +8,33 @@ services:
     buildCommand: |
       python -m pip install --upgrade pip
       pip install -r requirements.txt
-    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn backend.api.app:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: JWT_SECRET
         generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: POSTGRES_HOST
+        value: your-postgres-host
+      - key: POSTGRES_PORT
+        value: "5432"
+      - key: POSTGRES_DB
+        value: scamdetector
+      - key: POSTGRES_USER
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        value: postgres
+      - key: REDIS_URL
+        value: redis://localhost:6379/0
+      - key: GOOGLE_API_KEY
+        value: your-google-api-key
+      - key: ADMIN_USERNAME
+        value: admin
       - key: ADMIN_PASSWORD
         value: password
-      - key: USER_PASSWORD
-        value: password
+      - key: VECTOR_BACKEND
+        value: pgvector
