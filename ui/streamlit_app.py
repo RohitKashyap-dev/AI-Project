@@ -1,10 +1,18 @@
 import json
 import os
-import streamlit as st
-import requests
+import sys
+from pathlib import Path
 import traceback
 import time
 
+import requests
+import streamlit as st
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from backend.core.config import normalize_api_url
 from scam_detector.classifier import classify_message
 from scam_detector.logging_config import get_logger
 
@@ -17,19 +25,22 @@ st.title("Scam Detector")
 
 def _get_api_default() -> str:
     try:
-        return st.secrets["API_URL"]
+        return normalize_api_url(str(st.secrets["API_URL"]))
     except Exception:
-        return os.getenv("API_URL", "http://localhost:8000")
+        return normalize_api_url(os.getenv("API_URL", "http://localhost:8000"))
 
 
 API_DEFAULT = _get_api_default()
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password")
+
 if "token" not in st.session_state:
     st.session_state.token = None
 if "example" not in st.session_state:
     st.session_state.example = ""
 
 # hidden API URL (no visible input)
-API_URL = st.session_state.get("api_url", API_DEFAULT)
+API_URL = normalize_api_url(st.session_state.get("api_url", API_DEFAULT))
 
 
 def _complete_login(success_message: str) -> None:
@@ -47,11 +58,11 @@ def _complete_login(success_message: str) -> None:
 if not st.session_state.token:
     st.header("Please sign in to continue")
     # API URL is configured in session or defaults; not shown here
-    API_URL = st.session_state.get("api_url", API_DEFAULT)
+    API_URL = normalize_api_url(st.session_state.get("api_url", API_DEFAULT))
 
     with st.form("login_page"):
-        login_user = st.text_input("Username")
-        login_pass = st.text_input("Password", type="password")
+        login_user = st.text_input("Username", value=ADMIN_USERNAME)
+        login_pass = st.text_input("Password", type="password", value=ADMIN_PASSWORD)
         submit = st.form_submit_button("Login")
         if submit:
                 try:
@@ -76,26 +87,6 @@ if not st.session_state.token:
                         f.write(traceback.format_exc())
 
     st.markdown("---")
-    if st.button("Demo Login (admin)"):
-        try:
-            t = requests.post(f"{API_URL}/token", json={"username": "admin", "password": "password"}, timeout=5)
-            if t.ok:
-                access_token = t.json().get("access_token")
-                if access_token:
-                    st.session_state.token = access_token
-                    _complete_login("Demo login succeeded")
-                else:
-                    st.error("Demo login failed: no access token received")
-            else:
-                st.error("Demo login failed")
-                with open('logs/streamlit_ui_errors.log', 'a') as f:
-                    f.write(f"DEMO_LOGIN_FAILED: status={t.status_code} text={t.text}\n")
-        except Exception as exc:
-            st.error("Demo login error")
-            logger.error("Demo login error: %s", exc, exc_info=True)
-            with open('logs/streamlit_ui_errors.log', 'a') as f:
-                f.write('DEMO_LOGIN_EXCEPTION:\n')
-                f.write(traceback.format_exc())
 
     # Only halt rendering if still not authenticated — allow continuation when login succeeded
     if not st.session_state.token:
@@ -104,7 +95,7 @@ if not st.session_state.token:
 with st.sidebar:
     st.header("Connection")
     # API URL is configured in session or defaults; hidden from UI
-    API_URL = st.session_state.get("api_url", API_DEFAULT)
+    API_URL = normalize_api_url(st.session_state.get("api_url", API_DEFAULT))
 
     st.divider()
     st.subheader("Examples")

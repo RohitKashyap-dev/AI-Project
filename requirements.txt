@@ -2,6 +2,7 @@ langchain
 langchain-google-genai
 python-dotenv
 pydantic
+pydantic-settings
 PyJWT
 scikit-learn
 pandas
@@ -10,4 +11,18 @@ fastapi
 uvicorn
 ipykernel
 pytest
-PyJWT
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt<5
+sqlalchemy[asyncio]
+greenlet
+psycopg[binary]
+asyncpg
+pgvector
+pinecone
+celery
+redis
+prometheus-client
+python-multipart
+email-validator
+pytest-asyncio
