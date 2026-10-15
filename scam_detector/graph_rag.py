@@ -5,7 +5,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import numpy as np
 import pandas as pd
+
+if not hasattr(np, "long"):
+    np.long = np.int_
+    np.ulong = np.uint
+    np.longlong = np.int64
+    np.ulonglong = np.uint64
+
 from langchain_core.output_parsers import PydanticOutputParser
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity

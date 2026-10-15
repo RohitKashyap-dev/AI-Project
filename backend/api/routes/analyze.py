@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from backend.core.security import get_current_claims
 from backend.db.session import AsyncSessionLocal
 from backend.schemas.analyze import AnalyzeRequest, AnalyzeResponse
-from backend.services.rag_classifier import RAGClassifier
+from backend.services.online_ingestion.rag_classifier import RAGClassifier
 from backend.tasks.classify_task import classify_message_task
 from scam_detector.classifier import classify_message
 

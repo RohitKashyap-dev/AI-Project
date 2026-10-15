@@ -4,7 +4,7 @@ import asyncio
 from pathlib import Path
 
 from backend.core.migration_runner import create_all_tables
-from backend.services.dataset_ingestion import ingest_dataset_csv
+from backend.services.offline_ingestion.dataset_ingestion import ingest_dataset_csv
 
 
 async def bootstrap_application() -> dict:

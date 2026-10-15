@@ -1,7 +1,7 @@
 from celery import shared_task
 
 from backend.db.session import AsyncSessionLocal
-from backend.services.rag_classifier import RAGClassifier
+from backend.services.online_ingestion.rag_classifier import RAGClassifier
 
 
 @shared_task(name="classify_message_task")

@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db.session import get_db
-from backend.services.chunking_service import chunk_text
-from backend.services.embedding_service import EmbeddingService
-from backend.services.vector_store import VectorStore
+from backend.services.offline_ingestion.chunking_service import chunk_text
+from backend.services.offline_ingestion.embedding_service import EmbeddingService
+from backend.services.offline_ingestion.vector_store import VectorStore
 
 router = APIRouter(tags=["retrieval"])
 

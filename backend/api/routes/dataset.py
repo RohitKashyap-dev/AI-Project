@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 
-from backend.services.dataset_ingestion import ingest_dataset_csv
+from backend.services.offline_ingestion.dataset_ingestion import ingest_dataset_csv
 
 router = APIRouter(tags=["dataset"])
 

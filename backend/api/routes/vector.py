@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db.session import get_db
-from backend.services.retrieval_service import RetrievalService
+from backend.services.online_ingestion.retrieval_service import RetrievalService
 
 router = APIRouter(tags=["vector"])
 
