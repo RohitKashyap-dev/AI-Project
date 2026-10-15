@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    DATABASE_URL: str | None = None
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "scamdetector"
@@ -45,6 +46,9 @@ class Settings(BaseSettings):
 
     @property
     def postgres_dsn(self) -> str:
+        if self.DATABASE_URL:
+            jdbc_url = self.DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+            return jdbc_url.replace("postgresql://", "postgresql+psycopg://", 1)
         return (
             f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
             f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -52,6 +56,9 @@ class Settings(BaseSettings):
 
     @property
     def postgres_async_dsn(self) -> str:
+        if self.DATABASE_URL:
+            psql_url = self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+            return psql_url.replace("postgresql://", "postgresql+asyncpg://", 1)
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
             f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
