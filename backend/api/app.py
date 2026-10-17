@@ -1,8 +1,13 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes import auth, health, analyze, vector, retrieval, dataset, bootstrap, metrics
 from backend.core.config import settings
+from backend.core.migration_runner import create_all_tables
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -27,6 +32,14 @@ app.include_router(retrieval.router, prefix=settings.API_V1_PREFIX)
 app.include_router(dataset.router, prefix=settings.API_V1_PREFIX)
 app.include_router(bootstrap.router, prefix=settings.API_V1_PREFIX)
 app.include_router(metrics.router, prefix=settings.API_V1_PREFIX)
+
+
+@app.on_event("startup")
+async def startup_event() -> None:
+    try:
+        await create_all_tables()
+    except Exception:
+        logger.exception("Database bootstrap failed during startup")
 
 
 @app.get("/")
