@@ -1,4 +1,21 @@
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def sanitize_database_url(url: str) -> str:
+    """Remove query params that are not accepted by asyncpg/psycopg in Render/Neon setups."""
+    if not url:
+        return url
+
+    split = urlsplit(url)
+    query = []
+    for key, value in parse_qsl(split.query, keep_blank_values=True):
+        if key in {"sslmode", "channel_binding"}:
+            continue
+        query.append((key, value))
+
+    return urlunsplit(split._replace(query=urlencode(query)))
 
 
 def normalize_api_url(base_url: str) -> str:
@@ -47,7 +64,8 @@ class Settings(BaseSettings):
     @property
     def postgres_dsn(self) -> str:
         if self.DATABASE_URL:
-            jdbc_url = self.DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+            safe_url = sanitize_database_url(self.DATABASE_URL)
+            jdbc_url = safe_url.replace("postgres://", "postgresql+psycopg://", 1)
             return jdbc_url.replace("postgresql://", "postgresql+psycopg://", 1)
         return (
             f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
@@ -57,7 +75,8 @@ class Settings(BaseSettings):
     @property
     def postgres_async_dsn(self) -> str:
         if self.DATABASE_URL:
-            psql_url = self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+            safe_url = sanitize_database_url(self.DATABASE_URL)
+            psql_url = safe_url.replace("postgres://", "postgresql+asyncpg://", 1)
             return psql_url.replace("postgresql://", "postgresql+asyncpg://", 1)
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
